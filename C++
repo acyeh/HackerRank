@@ -1,0 +1,113 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <unordered_map>
+#include <tuple>
+
+using namespace std;
+vector<vector<char>> parseCin(){
+    string x;
+    vector<vector<char>> matrix;
+   
+    int line=0;
+    int numrow;
+    int numcol;
+    int row=0;
+    int col=0;
+    while(cin>>x){
+        if(line==0){
+            numrow=stoi(x);
+        }
+        else if(line==1){
+            numcol=stoi(x);
+            matrix = vector<vector<char>> (numrow, vector<char>(numcol));
+          //  cout<<"matrix dimensions are numcols:"<<matrix[0].size()<<" and numrows:"<<matrix.size()<<endl;
+            //cout<<"matrix dimensions are colsize:"<<colsize<<" and rowsize:"<<rowsize<<endl;
+        }
+        else{
+            matrix[col][row]=x.c_str()[0];
+            if(row<numcol-1){
+                row++;
+            }
+            else{
+                row=0;
+                col++;
+               // cout<<endl;
+            }
+        }
+        line++;
+    }
+    return matrix;
+}
+string coordinatesToString(int x,int y){
+    string coordString=to_string(x)+","+to_string(y);
+    return coordString;
+}
+int expandCell(unordered_map<string,bool> &visited,int coordx,int coordy, vector<vector<char>> matrix){
+    int numCells=1;
+    for(int i=coordy-1;i<coordy+2;i++){
+        for(int j=coordx-1;j<coordx+2;j++){
+                
+            if(i>=0&&i<matrix.size()&&j>=0&&j<matrix[0].size()){
+                
+                if(matrix[i][j]=='1'){
+                    //See if i've visited it already
+                    //Never visited this cell before, expand it
+                    if(visited.find(coordinatesToString(j,i))==visited.end()){
+                        visited.insert({coordinatesToString(j,i),true});
+                        numCells=numCells+expandCell(visited,j,i,matrix);
+                    }
+                    //I've already visited it
+                    else{
+                      //  cout<<"I've already visited "<<coordinatesToString(j,i)<<endl;
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+    //cout<<"expandCell for "<<coordx<<" "<<coordy<<" returned "<<numCells<<endl;
+
+    return numCells;
+}
+
+int findLargestRegion(vector<vector<char>> matrix){
+    int x=matrix[0].size();
+    int y=matrix.size();
+    int max=0;
+    int local=0;
+    unordered_map<string,bool> visited;
+    
+    
+   // cout<<"y is "<<y<<endl;
+   // cout<<"x is "<<x<<endl;
+    
+    
+    for(int i=0;i<y;i++){
+        for(int j=0;j<x;j++){
+            
+            //If it's a 1 and I've never visited this cell before, expand the cell
+            if(matrix[i][j]=='1'&&visited.find(coordinatesToString(j,i))==visited.end()){
+                visited.insert({coordinatesToString(j,i),true});
+                local=expandCell(visited,j,i,matrix);
+                if(local>max){
+                    max=local;
+                }
+            }
+            else{
+              // cout<<"I've already visited "<<i<<" "<<j<<endl;
+            }
+        }
+    }
+    
+    return max;
+}
+
+int main() {
+    vector<vector<char>> matrix=parseCin();
+
+    int res=findLargestRegion(matrix);
+    cout<<res<<endl;
+}
